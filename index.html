@@ -1,0 +1,1130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador: Actividad 2 - Identifiquemos la Violencia y la Discriminación (25N)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- html2canvas para descargar evidencia limpia -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- Tone.js para efectos de sonido sutiles (opcional y silenciable) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <!-- Google Fonts: Plus Jakarta Sans & Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Plus Jakarta Sans', 'sans-serif'],
+                    },
+                    colors: {
+                        crema25N: '#FAF8F5',
+                        morado25N: {
+                            50: '#FAF5FF',
+                            100: '#F3E8FF',
+                            200: '#E9D5FF',
+                            600: '#9333EA',
+                            700: '#7E22CE',
+                            800: '#6B21A8',
+                            900: '#581C87',
+                        },
+                        naranja25N: {
+                            50: '#FFF7ED',
+                            100: '#FFEDD5',
+                            200: '#FED7AA',
+                            500: '#F97316',
+                            600: '#EA580C',
+                            700: '#C2410C',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #FAF8F5;
+        }
+        /* Animación de entrada para tarjetas */
+        @keyframes slideUpFade {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-card {
+            animation: slideUpFade 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        /* Brillo sutil del puntero de la ruleta */
+        .wheel-pointer {
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.25));
+        }
+        /* Patrón de puntos para el área de evidencia */
+        .evidence-bg {
+            background-color: #FFFFFF;
+            background-image: radial-gradient(#E9D5FF 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+    </style>
+</head>
+<body class="text-slate-800 min-h-screen flex flex-col font-sans antialiased">
+
+    <!-- Encabezado Institucional Cálido 25N -->
+    <header class="bg-gradient-to-r from-morado25N-900 via-morado25N-800 to-naranja25N-600 text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 py-5 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/15 backdrop-blur-sm text-naranja25N-100 text-xs font-bold tracking-wider uppercase mb-2">
+                        <i class="fa-solid fa-ribbon text-naranja25N-300"></i> Campaña 25N • 16 Días de Activismo
+                    </div>
+                    <h1 class="font-display text-2xl sm:text-3xl font-extrabold tracking-tight">
+                        Actividad 2: Identifiquemos la Violencia y la Discriminación
+                    </h1>
+                    <p class="text-morado25N-100 text-xs sm:text-sm mt-1 max-w-2xl">
+                        La Ruleta y el Semáforo de Convivencia: Analicemos situaciones cotidianas en el hogar, la escuela, la comunidad y los espacios digitales.
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2.5 self-start md:self-center">
+                    <!-- Botón de Sonido -->
+                    <button id="toggle-sound-btn" type="button" class="bg-white/15 hover:bg-white/25 text-white text-xs font-semibold px-3 py-2 rounded-xl transition flex items-center gap-1.5 border border-white/20" title="Activar/Silenciar efectos de sonido">
+                        <i id="sound-icon" class="fa-solid fa-volume-high"></i>
+                        <span id="sound-label">Sonido: ON</span>
+                    </button>
+                    <!-- Insignia de Privacidad -->
+                    <span class="bg-emerald-500/25 border border-emerald-300/40 text-emerald-50 text-xs font-semibold px-3 py-2 rounded-xl flex items-center gap-1.5">
+                        <i class="fa-solid fa-user-shield"></i> Sin Datos Personales
+                    </span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenedor Principal -->
+    <main class="flex-grow max-w-7xl w-full mx-auto px-4 py-6 sm:px-6 lg:px-8 space-y-8">
+
+        <!-- SECCIÓN INTERACTIVA: RULETA + TARJETA DE CASO (Se oculta en Modo Evidencia) -->
+        <div id="interactive-workspace" class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+            <!-- COLUMNA IZQUIERDA: La Ruleta de Situaciones Cotidianas (5 cols) -->
+            <section class="lg:col-span-5 bg-white rounded-3xl p-5 sm:p-6 shadow-sm border border-morado25N-100 flex flex-col items-center">
+                <div class="w-full flex items-center justify-between mb-3">
+                    <div>
+                        <h2 class="font-display text-lg font-bold text-morado25N-900">1. Gira la Ruleta</h2>
+                        <p class="text-xs text-slate-500">Descubre una situación cotidiana para analizar en familia</p>
+                    </div>
+                    <button id="open-custom-modal-btn" type="button" class="text-xs font-semibold bg-naranja25N-50 hover:bg-naranja25N-100 text-naranja25N-700 border border-naranja25N-200 px-3 py-2 rounded-xl transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-plus"></i> Caso propio
+                    </button>
+                </div>
+
+                <!-- Contenedor Responsivo del Canvas de la Ruleta -->
+                <div class="relative w-full max-w-[340px] aspect-square my-2 flex items-center justify-center">
+                    <!-- Puntero superior -->
+                    <div class="wheel-pointer absolute -top-2 left-1/2 -translate-x-1/2 z-20 text-morado25N-900">
+                        <svg width="34" height="38" viewBox="0 0 34 38" fill="none">
+                            <path d="M17 38L2.27757 9.5L31.7224 9.5L17 38Z" fill="#581C87" stroke="#FFFFFF" stroke-width="3"/>
+                            <circle cx="17" cy="9" r="5" fill="#F97316"/>
+                        </svg>
+                    </div>
+
+                    <!-- Canvas de la Ruleta -->
+                    <canvas id="wheel-canvas" class="w-full h-full rounded-full shadow-md cursor-pointer"></canvas>
+
+                    <!-- Botón Central de Giro -->
+                    <button id="spin-btn" type="button" class="absolute z-10 w-20 h-20 rounded-full bg-gradient-to-br from-naranja25N-500 to-naranja25N-600 hover:from-naranja25N-600 hover:to-morado25N-800 text-white font-display font-extrabold text-sm tracking-wide shadow-xl border-4 border-white flex flex-col items-center justify-center transition-transform active:scale-95">
+                        <span>GIRAR</span>
+                        <i class="fa-solid fa-arrows-rotate text-xs mt-0.5"></i>
+                    </button>
+                </div>
+
+                <!-- Leyenda rápida de ámbitos -->
+                <div class="w-full mt-3 pt-3 border-t border-slate-100 flex flex-wrap justify-center gap-2 text-[11px] font-medium text-slate-600">
+                    <span class="px-2.5 py-1 rounded-full bg-morado25N-50 text-morado25N-800"><i class="fa-solid fa-house mr-1"></i>Hogar</span>
+                    <span class="px-2.5 py-1 rounded-full bg-naranja25N-50 text-naranja25N-800"><i class="fa-solid fa-school mr-1"></i>Escuela</span>
+                    <span class="px-2.5 py-1 rounded-full bg-amber-50 text-amber-800"><i class="fa-solid fa-users mr-1"></i>Comunidad</span>
+                    <span class="px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-800"><i class="fa-solid fa-mobile-screen mr-1"></i>Digital</span>
+                </div>
+            </section>
+
+            <!-- COLUMNA DERECHA: Tarjeta de Caso y Semáforo de Convivencia (7 cols) -->
+            <section class="lg:col-span-7">
+                <!-- Estado Inicial antes de girar -->
+                <div id="case-placeholder" class="bg-white rounded-3xl p-8 sm:p-10 shadow-sm border border-morado25N-100 text-center space-y-4 min-h-[420px] flex flex-col items-center justify-center">
+                    <div class="w-20 h-20 rounded-2xl bg-gradient-to-br from-morado25N-100 to-naranja25N-100 text-morado25N-700 flex items-center justify-center text-3xl shadow-inner">
+                        <i class="fa-solid fa-traffic-light"></i>
+                    </div>
+                    <h3 class="font-display text-xl font-bold text-slate-800">¿Listos para reflexionar en familia?</h3>
+                    <p class="text-sm text-slate-600 max-w-md leading-relaxed">
+                        Presiona el botón <strong>GIRAR</strong> en la ruleta para seleccionar una situación cotidiana. Después, usen el <strong>Semáforo de Convivencia</strong> para identificar qué tipo de violencia o discriminación representa.
+                    </p>
+                    <button type="button" onclick="triggerSpin()" class="mt-2 bg-morado25N-800 hover:bg-morado25N-900 text-white font-semibold text-sm px-6 py-3 rounded-xl shadow transition inline-flex items-center gap-2">
+                        <i class="fa-solid fa-play"></i> Girar la ruleta ahora
+                    </button>
+                </div>
+
+                <!-- Tarjeta Activa del Caso Seleccionado -->
+                <div id="active-case-card" class="hidden bg-white rounded-3xl shadow-md border border-morado25N-200 overflow-hidden animate-card">
+                    <!-- Cabecera del Caso -->
+                    <div class="bg-gradient-to-r from-morado25N-50 to-naranja25N-50 px-6 py-4 border-b border-morado25N-100 flex flex-wrap items-center justify-between gap-2">
+                        <div class="flex items-center gap-2">
+                            <span id="case-domain-badge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-morado25N-800 text-white">
+                                <i class="fa-solid fa-mobile-screen"></i> Espacio Digital
+                            </span>
+                            <span id="case-number-badge" class="text-xs font-semibold text-slate-500">Caso #1</span>
+                        </div>
+                        <button type="button" onclick="triggerSpin()" class="text-xs font-semibold text-morado25N-700 hover:text-morado25N-900 flex items-center gap-1">
+                            <i class="fa-solid fa-shuffle"></i> Cambiar caso
+                        </button>
+                    </div>
+
+                    <div class="p-6 space-y-6">
+                        <!-- Descripción de la Situación -->
+                        <div>
+                            <h3 class="text-xs font-bold uppercase tracking-wider text-naranja25N-600 mb-1.5">Situación cotidiana a analizar:</h3>
+                            <p id="case-description" class="font-display text-lg sm:text-xl font-bold text-slate-800 leading-snug">
+                                "..."
+                            </p>
+                        </div>
+
+                        <!-- PASO 2: Semáforo de Clasificación Interactivo -->
+                        <div id="semaforo-step" class="bg-crema25N rounded-2xl p-5 border border-slate-200/80 space-y-4">
+                            <div class="flex items-center gap-2.5">
+                                <div class="w-8 h-8 rounded-lg bg-naranja25N-100 text-naranja25N-600 flex items-center justify-center shrink-0">
+                                    <i class="fa-solid fa-traffic-light"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-display text-sm font-bold text-slate-800">2. Semáforo de Convivencia: ¿Qué identifican aquí?</h4>
+                                    <p class="text-xs text-slate-500">Dialoguen en familia y elijan la opción que mejor describe esta conducta:</p>
+                                </div>
+                            </div>
+
+                            <!-- Opciones de clasificación -->
+                            <div id="classification-options" class="grid grid-cols-1 gap-2.5">
+                                <!-- Se llenan dinámicamente -->
+                            </div>
+
+                            <!-- Selector de Nivel de Alerta del Semáforo -->
+                            <div class="pt-2">
+                                <label class="block text-xs font-bold text-slate-700 mb-2">Nivel de alerta que percibe la familia:</label>
+                                <div class="grid grid-cols-3 gap-2">
+                                    <button type="button" data-alert="amarillo" class="alert-level-btn p-2.5 rounded-xl border-2 border-slate-200 bg-white hover:border-amber-400 text-xs font-bold text-slate-700 flex flex-col items-center gap-1 transition">
+                                        <span class="w-4 h-4 rounded-full bg-amber-400 shadow-sm"></span>
+                                        <span>Alerta Preventiva</span>
+                                    </button>
+                                    <button type="button" data-alert="naranja" class="alert-level-btn p-2.5 rounded-xl border-2 border-slate-200 bg-white hover:border-orange-500 text-xs font-bold text-slate-700 flex flex-col items-center gap-1 transition">
+                                        <span class="w-4 h-4 rounded-full bg-orange-500 shadow-sm"></span>
+                                        <span>Riesgo Alto</span>
+                                    </button>
+                                    <button type="button" data-alert="rojo" class="alert-level-btn p-2.5 rounded-xl border-2 border-slate-200 bg-white hover:border-rose-600 text-xs font-bold text-slate-700 flex flex-col items-center gap-1 transition">
+                                        <span class="w-4 h-4 rounded-full bg-rose-600 shadow-sm"></span>
+                                        <span>¡Detener Ya!</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <button id="evaluate-btn" type="button" class="w-full bg-gradient-to-r from-morado25N-800 to-naranja25N-600 hover:from-morado25N-900 hover:to-naranja25N-700 text-white font-bold py-3 px-4 rounded-xl shadow transition flex items-center justify-center gap-2 text-sm">
+                                <i class="fa-solid fa-check-double"></i> Revisar Reflexión Pedagógica
+                            </button>
+                        </div>
+
+                        <!-- PASO 3: Retroalimentación Pedagógica y Registro de Acuerdo (Oculto hasta evaluar) -->
+                        <div id="pedagogical-feedback" class="hidden space-y-4 animate-card">
+                            <!-- Banner de resultado -->
+                            <div id="feedback-status-banner" class="p-4 rounded-2xl border flex items-start gap-3">
+                                <i id="feedback-status-icon" class="fa-solid fa-circle-check text-xl mt-0.5"></i>
+                                <div>
+                                    <h4 id="feedback-status-title" class="font-display font-bold text-sm">¡Excelente análisis familiar!</h4>
+                                    <p id="feedback-violence-type" class="text-xs font-semibold mt-0.5"></p>
+                                </div>
+                            </div>
+
+                            <!-- Explicación de derechos vulnerados -->
+                            <div class="bg-morado25N-50/70 rounded-2xl p-4 border border-morado25N-100 space-y-2">
+                                <h5 class="text-xs font-bold uppercase tracking-wider text-morado25N-800 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-scale-balanced"></i> ¿Por qué vulnera derechos?
+                                </h5>
+                                <p id="feedback-explanation" class="text-sm text-slate-700 leading-relaxed"></p>
+                            </div>
+
+                            <!-- Alternativa de Buen Trato + Pregunta Detonadora -->
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div class="bg-emerald-50/80 rounded-2xl p-4 border border-emerald-200 space-y-1.5">
+                                    <h5 class="text-xs font-bold uppercase tracking-wider text-emerald-800 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-hand-holding-heart"></i> Alternativa de Buen Trato
+                                    </h5>
+                                    <p id="feedback-alternative" class="text-xs sm:text-sm text-emerald-950 leading-relaxed"></p>
+                                </div>
+                                <div class="bg-naranja25N-50/80 rounded-2xl p-4 border border-naranja25N-200 space-y-1.5">
+                                    <h5 class="text-xs font-bold uppercase tracking-wider text-naranja25N-800 flex items-center gap-1.5">
+                                        <i class="fa-solid fa-comments"></i> Pregunta para dialogar
+                                    </h5>
+                                    <p id="feedback-question" class="text-xs sm:text-sm text-naranja25N-950 leading-relaxed italic"></p>
+                                </div>
+                            </div>
+
+                            <!-- Caja para anotar breve reflexión o acuerdo familiar -->
+                            <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-2.5">
+                                <label for="family-agreement-input" class="block text-xs font-bold text-slate-700">
+                                    <i class="fa-solid fa-pen-nib text-morado25N-700 mr-1"></i> Escriban una conclusión o acuerdo breve de su familia (sin nombres propios):
+                                </label>
+                                <textarea id="family-agreement-input" rows="2" maxlength="160" placeholder="Ej. Acordamos respetar la privacidad de los celulares y no hacer burlas sobre el físico..." class="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm text-slate-800 focus:border-morado25N-600 focus:outline-none focus:ring-2 focus:ring-morado25N-200"></textarea>
+                                <div class="flex flex-wrap items-center justify-between gap-2">
+                                    <span class="text-[11px] text-slate-400">Se guardará en el tablero de evidencia de abajo.</span>
+                                    <button id="save-to-board-btn" type="button" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-xl shadow transition flex items-center gap-2">
+                                        <i class="fa-solid fa-bookmark"></i> Guardar en Tablero Familiar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- SECCIÓN INFERIOR: TABLERO DE CASOS ANALIZADOS Y MODO EVIDENCIA -->
+        <section id="board-section" class="space-y-4 pt-2">
+            <!-- Barra de control del Tablero -->
+            <div class="bg-white rounded-2xl p-4 sm:p-5 shadow-sm border border-morado25N-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-morado25N-100 text-morado25N-800 flex items-center justify-center font-display font-extrabold text-lg" id="analyzed-count-badge">
+                        0
+                    </div>
+                    <div>
+                        <h2 class="font-display text-base sm:text-lg font-bold text-slate-800">Tablero Familiar de Casos Analizados</h2>
+                        <p class="text-xs text-slate-500">Aquí se reúnen sus reflexiones para generar la evidencia de la Actividad 2.</p>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <button id="generate-evidence-btn" type="button" class="bg-morado25N-800 hover:bg-morado25N-900 text-white text-xs sm:text-sm font-bold px-4 py-2.5 rounded-xl shadow-sm transition flex items-center gap-2">
+                        <i class="fa-solid fa-file-shield"></i> Generar Evidencia Digital (Sin Datos Personales)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Banner de Controles de Descarga en Modo Evidencia (Oculto por defecto) -->
+            <div id="evidence-action-bar" class="hidden bg-emerald-50 border-2 border-emerald-300 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4 animate-card">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-shield-check text-lg"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-display text-sm font-bold text-emerald-950">Lámina de Evidencia Lista para Enviar (CNDH - 25N)</h3>
+                        <p class="text-xs text-emerald-800">Formato limpio y anónimo. Descarga la imagen PNG para adjuntarla al correo institucional.</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+                    <button id="download-evidence-png-btn" type="button" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold px-4 py-2.5 rounded-xl shadow transition flex items-center gap-2">
+                        <i class="fa-solid fa-download"></i> Descargar Evidencia PNG
+                    </button>
+                    <button id="close-evidence-mode-btn" type="button" class="bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 text-xs sm:text-sm font-semibold px-3.5 py-2.5 rounded-xl transition">
+                        Seguir jugando
+                    </button>
+                </div>
+            </div>
+
+            <!-- ÁREA EXPORTABLE COMO EVIDENCIA OFICIAL -->
+            <div id="evidence-export-sheet" class="bg-white rounded-3xl shadow-md border-2 border-morado25N-200 overflow-hidden">
+                <!-- Encabezado oficial visible en la lámina de evidencia -->
+                <div id="sheet-official-header" class="hidden bg-gradient-to-r from-morado25N-900 via-morado25N-800 to-naranja25N-600 text-white px-6 py-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                        <span class="inline-block text-[11px] font-bold uppercase tracking-widest bg-white/15 px-2.5 py-0.5 rounded-full mb-1">
+                            Campaña 25N y 16 Días de Activismo
+                        </span>
+                        <h3 class="font-display text-xl font-extrabold">Actividad 2: Identifiquemos la Violencia y la Discriminación</h3>
+                        <p class="text-xs text-morado25N-100 mt-0.5">Jornada Familiar de Reflexión y Prevención</p>
+                    </div>
+                    <div class="sm:text-right">
+                        <span id="sheet-date-label" class="inline-block text-xs font-semibold bg-white/15 px-3 py-1 rounded-full"></span>
+                        <p class="text-[11px] text-naranja25N-100 mt-1 font-medium">
+                            <i class="fa-solid fa-lock mr-1"></i>Privacidad Protegida: Sin rostros ni datos personales
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Contenedor de tarjetas guardadas -->
+                <div id="saved-cases-grid" class="evidence-bg p-6 min-h-[200px]">
+                    <!-- Estado vacío -->
+                    <div id="board-empty-state" class="text-center py-8 max-w-md mx-auto">
+                        <div class="w-12 h-12 rounded-full bg-morado25N-100 text-morado25N-600 flex items-center justify-center mx-auto mb-3 text-lg">
+                            <i class="fa-solid fa-clipboard-list"></i>
+                        </div>
+                        <h4 class="font-display text-sm font-bold text-slate-700">Aún no hay casos guardados en el tablero</h4>
+                        <p class="text-xs text-slate-500 mt-1">
+                            Gira la ruleta, analiza una situación con el semáforo y presiona <strong>"Guardar en Tablero Familiar"</strong> para ir construyendo su evidencia.
+                        </p>
+                    </div>
+
+                    <!-- Grid dinámico de casos analizados -->
+                    <div id="cards-list" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        <!-- Tarjetas generadas por JS -->
+                    </div>
+                </div>
+
+                <!-- Pie de lámina oficial (visible en Modo Evidencia) -->
+                <div id="sheet-official-footer" class="hidden bg-morado25N-50 px-6 py-3 border-t border-morado25N-100 flex flex-col sm:flex-row justify-between items-center gap-2 text-[11px] text-morado25N-900 font-medium">
+                    <span><i class="fa-solid fa-ribbon text-naranja25N-600 mr-1.5"></i>¡En familia construimos espacios seguros, relaciones igualitarias y una vida libre de violencia!</span>
+                    <span class="text-slate-500">Evidencia documental anónima • 25N</span>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODAL: Agregar Caso Cotidiano Propio de la Familia -->
+    <div id="custom-case-modal" class="fixed inset-0 z-50 hidden bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-morado25N-100 space-y-5 animate-card">
+            <div class="flex items-start justify-between">
+                <div>
+                    <span class="inline-block text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-naranja25N-100 text-naranja25N-800 mb-1">
+                        Personalizar Ruleta
+                    </span>
+                    <h3 class="font-display text-xl font-bold text-slate-800">Agregar situación cotidiana propia</h3>
+                </div>
+                <button type="button" id="close-custom-modal-btn" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <form id="custom-case-form" class="space-y-4">
+                <div>
+                    <label for="custom-domain" class="block text-xs font-bold text-slate-700 mb-1">Ámbito donde ocurre</label>
+                    <select id="custom-domain" class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-800 focus:border-morado25N-600 focus:outline-none">
+                        <option value="Hogar / Familia">Hogar / Familia</option>
+                        <option value="Escuela">Escuela</option>
+                        <option value="Espacios Digitales">Espacios Digitales</option>
+                        <option value="Comunidad">Comunidad</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="custom-short-title" class="block text-xs font-bold text-slate-700 mb-1">Título corto para la ruleta (máx. 22 caracteres)</label>
+                    <input type="text" id="custom-short-title" maxlength="22" required placeholder="Ej. Apodos en el chat" class="w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm text-slate-800 focus:border-morado25N-600 focus:outline-none">
+                </div>
+
+                <div>
+                    <label for="custom-description" class="block text-xs font-bold text-slate-700 mb-1">Describe la situación cotidiana (sin nombres reales)</label>
+                    <textarea id="custom-description" rows="3" maxlength="200" required placeholder="Ej. En el grupo escolar envían stickers burlándose de cómo habla una compañera..." class="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm text-slate-800 focus:border-morado25N-600 focus:outline-none"></textarea>
+                </div>
+
+                <div>
+                    <label for="custom-category" class="block text-xs font-bold text-slate-700 mb-1">¿Qué problemática principal refleja?</label>
+                    <select id="custom-category" class="w-full rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-800 focus:border-morado25N-600 focus:outline-none">
+                        <option value="Control o Acoso">Control o Acoso</option>
+                        <option value="Burlas o Descalificación">Burlas o Descalificación</option>
+                        <option value="Exclusión o Limitación de oportunidades">Exclusión o Limitación de oportunidades</option>
+                        <option value="Amenazas o Chantaje emocional">Amenazas o Chantaje emocional</option>
+                    </select>
+                </div>
+
+                <div class="flex justify-end gap-2.5 pt-2">
+                    <button type="button" id="cancel-custom-btn" class="px-4 py-2.5 rounded-xl border border-slate-300 text-xs font-semibold text-slate-600 hover:bg-slate-50">
+                        Cancelar
+                    </button>
+                    <button type="submit" class="px-5 py-2.5 rounded-xl bg-naranja25N-600 hover:bg-naranja25N-700 text-white text-xs font-bold shadow transition">
+                        Añadir a la ruleta
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Notificación Toast (Reemplaza alert()) -->
+    <div id="toast-box" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <div class="bg-slate-900 text-white px-4 py-3 rounded-2xl shadow-xl flex items-center gap-3 text-xs sm:text-sm font-medium border border-white/10">
+            <i id="toast-icon" class="fa-solid fa-circle-info text-naranja25N-400"></i>
+            <span id="toast-text">Mensaje</span>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. BANCO DE 8 SITUACIONES COTIDIANAS 25N
+        // ==========================================
+        const wheelCases = [
+            {
+                id: 1,
+                shortTitle: "Control Digital",
+                domain: "Espacios Digitales",
+                domainIcon: "fa-mobile-screen",
+                color: "#6B21A8", // Morado profundo
+                description: "Una pareja o amistad exige las contraseñas de redes sociales y revisa mensajes privados bajo la excusa de 'si no tienes nada que ocultar, no pasa nada'.",
+                correctCategory: "Control o Acoso",
+                options: [
+                    "Control o Acoso",
+                    "Burlas o Descalificación",
+                    "Exclusión o Limitación de oportunidades"
+                ],
+                violenceType: "Violencia Digital y Psicológica (Control)",
+                explanation: "Revisar dispositivos o exigir contraseñas vulnera el derecho a la privacidad, la autonomía y la libertad de las mujeres y adolescentes. El control nunca es una muestra de cariño.",
+                alternative: "Respetar la privacidad digital de cada persona y construir relaciones basadas en la confianza mutua y los límites claros.",
+                question: "¿Qué límites digitales debemos respetar todas y todos en casa para sentirnos seguros?"
+            },
+            {
+                id: 2,
+                shortTitle: "Burlas por Físico",
+                domain: "Escuela",
+                domainIcon: "fa-school",
+                color: "#F97316", // Naranja vibrante
+                description: "En el salón o en los pasillos, un grupo hace comentarios y apodos sobre el cuerpo o la forma de vestir de una compañera, diciendo que 'solo están jugando'.",
+                correctCategory: "Burlas o Descalificación",
+                options: [
+                    "Control o Acoso",
+                    "Burlas o Descalificación",
+                    "Amenazas o Chantaje emocional"
+                ],
+                violenceType: "Violencia Psicológica y Acoso Escolar",
+                explanation: "Opinar o burlarse del cuerpo y la vestimenta de niñas y adolescentes afecta su autoestima, su derecho a vivir libres de humillaciones y a habitar la escuela con seguridad.",
+                alternative: "Promover el respeto absoluto hacia todos los cuerpos y detener cualquier comentario o apodo ofensivo sin justificarlo como 'broma'.",
+                question: "¿Cómo podemos apoyar a alguien cuando escuchamos que se burlan de su aspecto en la escuela o en la familia?"
+            },
+            {
+                id: 3,
+                shortTitle: "Opinión Ignorada",
+                domain: "Hogar / Familia",
+                domainIcon: "fa-house",
+                color: "#7E22CE", // Morado medio
+                description: "Durante una charla familiar sobre decisiones importantes, cuando una mujer o adolescente opina la interrumpen o le dicen que 'exagera' y no toman en cuenta su propuesta.",
+                correctCategory: "Burlas o Descalificación",
+                options: [
+                    "Exclusión o Limitación de oportunidades",
+                    "Burlas o Descalificación",
+                    "Control o Acoso"
+                ],
+                violenceType: "Violencia Simbólica y Descalificación",
+                explanation: "Minimizar la voz de las mujeres etiquetando sus ideas como 'exageraciones' invalida su derecho a participar, expresarse y ser escuchadas en igualdad de condiciones.",
+                alternative: "Practicar la escucha activa sin interrumpir y valorar las propuestas de todas las personas de la familia por igual.",
+                question: "¿En nuestra familia escuchamos con la misma atención a niñas, adolescentes y mujeres que a los hombres?"
+            },
+            {
+                id: 4,
+                shortTitle: "Fuera del Juego",
+                domain: "Comunidad",
+                domainIcon: "fa-users",
+                color: "#EA580C", // Naranja quemado
+                description: "En el parque o en la cancha de la colonia, no dejan jugar fútbol o actividades físicas a las niñas diciéndoles que 'ese deporte es muy rudo para ellas'.",
+                correctCategory: "Exclusión o Limitación de oportunidades",
+                options: [
+                    "Control o Acoso",
+                    "Exclusión o Limitación de oportunidades",
+                    "Amenazas o Chantaje emocional"
+                ],
+                violenceType: "Discriminación y Exclusión por Género",
+                explanation: "Excluir a las niñas de juegos o deportes por estereotipos limita su derecho al esparcimiento, a la salud, al desarrollo de habilidades y al uso libre de los espacios públicos.",
+                alternative: "Organizar equipos mixtos e incluyentes donde niñas y niños participen con las mismas reglas y oportunidades.",
+                question: "¿Qué juegos o actividades seguimos dividiendo entre 'de niños' y 'de niñas' y cómo podemos cambiarlo?"
+            },
+            {
+                id: 5,
+                shortTitle: "Acoso en Redes",
+                domain: "Espacios Digitales",
+                domainIcon: "fa-mobile-screen",
+                color: "#581C87", // Morado oscuro
+                description: "Una adolescente recibe mensajes insistentes de desconocidos o conocidos pidiéndole fotos, y cuando bloquea la cuenta le escriben desde otros perfiles o crean memes sobre ella.",
+                correctCategory: "Control o Acoso",
+                options: [
+                    "Control o Acoso",
+                    "Exclusión o Limitación de oportunidades",
+                    "Micromachismos cotidianos"
+                ],
+                violenceType: "Ciberacoso y Violencia Digital",
+                explanation: "El hostigamiento insistente y la difusión de imágenes o memes sin consentimiento atentan contra la integridad, seguridad y dignidad digital de adolescentes y mujeres.",
+                alternative: "No compartir ni reírse de memes ofensivos, bloquear, guardar evidencia y pedir apoyo inmediato a personas adultas de confianza.",
+                question: "¿Saben los integrantes más jóvenes de casa a quién acudir de inmediato si sufren acoso en internet?"
+            },
+            {
+                id: 6,
+                shortTitle: "Tareas Desiguales",
+                domain: "Hogar / Familia",
+                domainIcon: "fa-house",
+                color: "#D97706", // Ámbar cálido
+                description: "Al terminar de comer, se da por hecho que la mamá y las hijas deben recoger la mesa y lavar los trastes, mientras los hombres de la casa van a descansar.",
+                correctCategory: "Exclusión o Limitación de oportunidades",
+                options: [
+                    "Amenazas o Chantaje emocional",
+                    "Exclusión o Limitación de oportunidades",
+                    "Control o Acoso"
+                ],
+                violenceType: "Desigualdad de Género y Sobrecarga de Cuidados",
+                explanation: "Asignar el trabajo doméstico exclusivamente a mujeres y niñas les resta tiempo para estudiar, descansar o jugar, reproduciendo roles desiguales desde la infancia.",
+                alternative: "Crear un rol semanal donde todas y todos en casa compartan de forma equitativa las tareas de limpieza y cuidado.",
+                question: "¿Cómo podemos reorganizar hoy mismo las tareas de nuestra casa para que sean más justas para todas y todos?"
+            },
+            {
+                id: 7,
+                shortTitle: "Chantaje Emocional",
+                domain: "Escuela",
+                domainIcon: "fa-school",
+                color: "#9333EA", // Púrpura vibrante
+                description: "Alguien amenaza con dejar de hablarle a una compañera o excluirla del grupo de amigos si no hace la tarea por ellos o si no acepta salir con alguien.",
+                correctCategory: "Amenazas o Chantaje emocional",
+                options: [
+                    "Burlas o Descalificación",
+                    "Amenazas o Chantaje emocional",
+                    "Micromachismos cotidianos"
+                ],
+                violenceType: "Violencia Psicológica y Coacción",
+                explanation: "Condicionar el afecto o la pertenencia a un grupo mediante amenazas vulnera la libertad de decisión y el derecho a relaciones sanas libres de presión.",
+                alternative: "Fomentar amistades basadas en el respeto a la palabra 'no' y al derecho de decidir libremente sin miedo a represalias.",
+                question: "¿Por qué es importante enseñar desde la niñez que decir 'no' debe ser respetado sin enojo ni castigos?"
+            },
+            {
+                id: 8,
+                shortTitle: "Micromachismos",
+                domain: "Comunidad",
+                domainIcon: "fa-users",
+                color: "#C2410C", // Naranja terracota
+                description: "En una reunión vecinal o familiar, felicitan a un papá por 'ayudar' a cuidar a sus propios hijos, pero critican a la mamá si sale a trabajar o estudiar.",
+                correctCategory: "Micromachismos cotidianos",
+                options: [
+                    "Control o Acoso",
+                    "Amenazas o Chantaje emocional",
+                    "Micromachismos cotidianos"
+                ],
+                violenceType: "Estereotipos de Género y Micromachismos",
+                explanation: "La crianza y el cuidado son responsabilidades compartidas, no una 'ayuda' del hombre. Juzgar a las mujeres por desarrollarse profesionalmente limita sus proyectos de vida.",
+                alternative: "Reconocer la corresponsabilidad familiar y celebrar los logros educativos y laborales de las mujeres sin culpa ni juicios.",
+                question: "¿Qué frases cotidianas hemos normalizado que ponen exigencias distintas a mamás y papás?"
+            }
+        ];
+
+        // ==========================================
+        // 2. ESTADO DE LA APLICACIÓN
+        // ==========================================
+        let currentRotation = 0;
+        let isSpinning = false;
+        let selectedCase = null;
+        let chosenOption = null;
+        let chosenAlertLevel = null;
+        let analyzedBoard = [];
+        let soundEnabled = true;
+        let isEvidenceMode = false;
+
+        // ==========================================
+        // 3. REFERENCIAS DEL DOM
+        // ==========================================
+        const wheelCanvas = document.getElementById('wheel-canvas');
+        const ctx = wheelCanvas.getContext('2d');
+        const spinBtn = document.getElementById('spin-btn');
+
+        const casePlaceholder = document.getElementById('case-placeholder');
+        const activeCaseCard = document.getElementById('active-case-card');
+        const caseDomainBadge = document.getElementById('case-domain-badge');
+        const caseNumberBadge = document.getElementById('case-number-badge');
+        const caseDescription = document.getElementById('case-description');
+        const classificationOptions = document.getElementById('classification-options');
+        const evaluateBtn = document.getElementById('evaluate-btn');
+
+        const pedagogicalFeedback = document.getElementById('pedagogical-feedback');
+        const feedbackStatusBanner = document.getElementById('feedback-status-banner');
+        const feedbackStatusIcon = document.getElementById('feedback-status-icon');
+        const feedbackStatusTitle = document.getElementById('feedback-status-title');
+        const feedbackViolenceType = document.getElementById('feedback-violence-type');
+        const feedbackExplanation = document.getElementById('feedback-explanation');
+        const feedbackAlternative = document.getElementById('feedback-alternative');
+        const feedbackQuestion = document.getElementById('feedback-question');
+        const familyAgreementInput = document.getElementById('family-agreement-input');
+        const saveToBoardBtn = document.getElementById('save-to-board-btn');
+
+        const analyzedCountBadge = document.getElementById('analyzed-count-badge');
+        const boardEmptyState = document.getElementById('board-empty-state');
+        const cardsList = document.getElementById('cards-list');
+
+        // Controles de Modo Evidencia y Modales
+        const interactiveWorkspace = document.getElementById('interactive-workspace');
+        const generateEvidenceBtn = document.getElementById('generate-evidence-btn');
+        const evidenceActionBar = document.getElementById('evidence-action-bar');
+        const downloadEvidencePngBtn = document.getElementById('download-evidence-png-btn');
+        const closeEvidenceModeBtn = document.getElementById('close-evidence-mode-btn');
+        const sheetOfficialHeader = document.getElementById('sheet-official-header');
+        const sheetOfficialFooter = document.getElementById('sheet-official-footer');
+        const sheetDateLabel = document.getElementById('sheet-date-label');
+
+        const customCaseModal = document.getElementById('custom-case-modal');
+        const openCustomModalBtn = document.getElementById('open-custom-modal-btn');
+        const closeCustomModalBtn = document.getElementById('close-custom-modal-btn');
+        const cancelCustomBtn = document.getElementById('cancel-custom-btn');
+        const customCaseForm = document.getElementById('custom-case-form');
+
+        const toggleSoundBtn = document.getElementById('toggle-sound-btn');
+        const soundIcon = document.getElementById('sound-icon');
+        const soundLabel = document.getElementById('sound-label');
+
+        // ==========================================
+        // 4. SISTEMA DE SONIDO SUTIL (TONE.JS)
+        // ==========================================
+        let tickSynth = null;
+        let chimeSynth = null;
+
+        function initAudio() {
+            if (!tickSynth && typeof Tone !== 'undefined') {
+                tickSynth = new Tone.MembraneSynth({
+                    pitchDecay: 0.01,
+                    octaves: 2,
+                    envelope: { attack: 0.001, decay: 0.05, sustain: 0 }
+                }).toDestination();
+                tickSynth.volume.value = -14;
+
+                chimeSynth = new Tone.PolySynth(Tone.Synth, {
+                    oscillator: { type: "triangle" },
+                    envelope: { attack: 0.02, decay: 0.3, sustain: 0.1, release: 0.8 }
+                }).toDestination();
+                chimeSynth.volume.value = -10;
+            }
+        }
+
+        function playTickSound() {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                if (Tone.context.state !== 'running') Tone.start();
+                tickSynth.triggerAttackRelease("C5", "32n");
+            } catch (e) {}
+        }
+
+        function playSuccessChime() {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                if (Tone.context.state !== 'running') Tone.start();
+                chimeSynth.triggerAttackRelease(["C5", "E5", "G5"], "8n");
+            } catch (e) {}
+        }
+
+        toggleSoundBtn.addEventListener('click', () => {
+            soundEnabled = !soundEnabled;
+            soundIcon.className = soundEnabled ? 'fa-solid fa-volume-high' : 'fa-solid fa-volume-xmark';
+            soundLabel.textContent = soundEnabled ? 'Sonido: ON' : 'Sonido: OFF';
+        });
+
+        // ==========================================
+        // 5. NOTIFICACIONES TOAST (SIN ALERT)
+        // ==========================================
+        let toastTimer;
+        function showToast(msg, icon = 'fa-circle-info text-naranja25N-400') {
+            const box = document.getElementById('toast-box');
+            document.getElementById('toast-text').textContent = msg;
+            document.getElementById('toast-icon').className = `fa-solid ${icon}`;
+            box.classList.remove('translate-y-20', 'opacity-0');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
+                box.classList.add('translate-y-20', 'opacity-0');
+            }, 3400);
+        }
+
+        // ==========================================
+        // 6. DIBUJO Y FÍSICA DE LA RULETA (CANVAS)
+        // ==========================================
+        function resizeWheelCanvas() {
+            const container = wheelCanvas.parentElement;
+            const size = container.clientWidth;
+            const dpr = window.devicePixelRatio || 1;
+            wheelCanvas.width = size * dpr;
+            wheelCanvas.height = size * dpr;
+            ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+            drawWheel(currentRotation);
+        }
+
+        function drawWheel(rotationAngle) {
+            const size = wheelCanvas.clientWidth;
+            if (size === 0) return;
+            const center = size / 2;
+            const radius = center - 8;
+            const numSlices = wheelCases.length;
+            const sliceAngle = (2 * Math.PI) / numSlices;
+
+            ctx.clearRect(0, 0, size, size);
+
+            // Borde exterior decorativo
+            ctx.beginPath();
+            ctx.arc(center, center, radius + 6, 0, 2 * Math.PI);
+            ctx.fillStyle = '#F3E8FF';
+            ctx.fill();
+
+            for (let i = 0; i < numSlices; i++) {
+                const startAngle = rotationAngle + i * sliceAngle;
+                const endAngle = startAngle + sliceAngle;
+                const item = wheelCases[i];
+
+                // Sector
+                ctx.beginPath();
+                ctx.moveTo(center, center);
+                ctx.arc(center, center, radius, startAngle, endAngle);
+                ctx.closePath();
+                ctx.fillStyle = item.color;
+                ctx.fill();
+
+                ctx.lineWidth = 2;
+                ctx.strokeStyle = '#FFFFFF';
+                ctx.stroke();
+
+                // Texto radial dentro del sector
+                ctx.save();
+                ctx.translate(center, center);
+                ctx.rotate(startAngle + sliceAngle / 2);
+                ctx.textAlign = 'right';
+                ctx.fillStyle = '#FFFFFF';
+                const fontSize = Math.max(10, Math.floor(size * 0.036));
+                ctx.font = `700 ${fontSize}px "Plus Jakarta Sans", sans-serif`;
+                ctx.fillText(item.shortTitle, radius - 14, fontSize * 0.35);
+                ctx.restore();
+            }
+        }
+
+        function triggerSpin() {
+            if (isSpinning) return;
+            isSpinning = true;
+            spinBtn.classList.add('opacity-80', 'cursor-not-allowed');
+
+            const numSlices = wheelCases.length;
+            const sliceAngle = (2 * Math.PI) / numSlices;
+
+            // Vueltas aleatorias entre 5 y 8 giros completos + ángulo aleatorio
+            const extraSpins = (5 + Math.random() * 3) * 2 * Math.PI;
+            const randomOffset = Math.random() * 2 * Math.PI;
+            const targetRotation = currentRotation + extraSpins + randomOffset;
+
+            const duration = 3600; // ms
+            const startTime = performance.now();
+            const startRotation = currentRotation;
+            let lastSliceIndex = -1;
+
+            function animateSpin(now) {
+                const elapsed = now - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+
+                // Curva de desaceleración suave (easeOutQuart)
+                const easeOut = 1 - Math.pow(1 - progress, 4);
+                currentRotation = startRotation + (targetRotation - startRotation) * easeOut;
+
+                drawWheel(currentRotation);
+
+                // Calcular qué sector pasa por el puntero superior (-PI/2) para el sonido
+                const pointerAngle = (3 * Math.PI / 2 - (currentRotation % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+                const currentSlice = Math.floor(pointerAngle / sliceAngle) % numSlices;
+                if (currentSlice !== lastSliceIndex) {
+                    playTickSound();
+                    lastSliceIndex = currentSlice;
+                }
+
+                if (progress < 1) {
+                    requestAnimationFrame(animateSpin);
+                } else {
+                    isSpinning = false;
+                    spinBtn.classList.remove('opacity-80', 'cursor-not-allowed');
+                    playSuccessChime();
+                    loadSelectedCase(wheelCases[currentSlice]);
+                }
+            }
+
+            requestAnimationFrame(animateSpin);
+        }
+
+        spinBtn.addEventListener('click', triggerSpin);
+        wheelCanvas.addEventListener('click', triggerSpin);
+
+        // ==========================================
+        // 7. CARGA DE CASO Y SEMÁFORO DE CONVIVENCIA
+        // ==========================================
+        function loadSelectedCase(caseObj) {
+            selectedCase = caseObj;
+            chosenOption = null;
+            chosenAlertLevel = null;
+
+            // Mostrar tarjeta activa y ocultar placeholder
+            casePlaceholder.classList.add('hidden');
+            activeCaseCard.classList.remove('hidden');
+            pedagogicalFeedback.classList.add('hidden');
+
+            // Llenar datos del caso
+            caseDomainBadge.innerHTML = `<i class="fa-solid ${caseObj.domainIcon}"></i> ${caseObj.domain}`;
+            caseNumberBadge.textContent = `Situación #${caseObj.id}`;
+            caseDescription.textContent = `“${caseObj.description}”`;
+            familyAgreementInput.value = '';
+
+            // Renderizar opciones de clasificación
+            classificationOptions.innerHTML = '';
+            caseObj.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'option-choice-btn w-full text-left px-4 py-3 rounded-xl border-2 border-slate-200 bg-white hover:border-morado25N-400 text-xs sm:text-sm font-semibold text-slate-700 flex items-center justify-between transition';
+                btn.innerHTML = `
+                    <span>${opt}</span>
+                    <span class="w-5 h-5 rounded-full border-2 border-slate-300 flex items-center justify-center check-dot"></span>
+                `;
+                btn.addEventListener('click', () => {
+                    chosenOption = opt;
+                    document.querySelectorAll('.option-choice-btn').forEach(b => {
+                        b.classList.remove('border-morado25N-700', 'bg-morado25N-50', 'text-morado25N-900');
+                        b.querySelector('.check-dot').innerHTML = '';
+                        b.querySelector('.check-dot').classList.remove('border-morado25N-700', 'bg-morado25N-700');
+                    });
+                    btn.classList.add('border-morado25N-700', 'bg-morado25N-50', 'text-morado25N-900');
+                    const dot = btn.querySelector('.check-dot');
+                    dot.classList.add('border-morado25N-700', 'bg-morado25N-700');
+                    dot.innerHTML = '<i class="fa-solid fa-check text-white text-[10px]"></i>';
+                });
+                classificationOptions.appendChild(btn);
+            });
+
+            // Resetear botones de nivel de alerta
+            document.querySelectorAll('.alert-level-btn').forEach(btn => {
+                btn.classList.remove('ring-2', 'ring-offset-1', 'ring-morado25N-700', 'bg-morado25N-50', 'border-morado25N-600');
+            });
+
+            // Desplazar suavemente en móviles
+            if (window.innerWidth < 1024) {
+                activeCaseCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+        }
+
+        // Selección de nivel de alerta del semáforo
+        document.querySelectorAll('.alert-level-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                chosenAlertLevel = btn.dataset.alert;
+                document.querySelectorAll('.alert-level-btn').forEach(b => {
+                    b.classList.remove('ring-2', 'ring-offset-1', 'ring-morado25N-700', 'bg-morado25N-50', 'border-morado25N-600');
+                });
+                btn.classList.add('ring-2', 'ring-offset-1', 'ring-morado25N-700', 'bg-morado25N-50', 'border-morado25N-600');
+            });
+        });
+
+        // Evaluar respuesta y mostrar retroalimentación pedagógica
+        evaluateBtn.addEventListener('click', () => {
+            if (!selectedCase) return;
+            if (!chosenOption) {
+                showToast('Elijan primero qué tipo de conducta identifican en el semáforo.', 'fa-hand-pointer text-amber-400');
+                return;
+            }
+            if (!chosenAlertLevel) {
+                showToast('Seleccionen un nivel de alerta del semáforo (Preventiva, Riesgo Alto o Detener Ya).', 'fa-traffic-light text-orange-400');
+                return;
+            }
+
+            const isExactMatch = chosenOption === selectedCase.correctCategory;
+
+            if (isExactMatch) {
+                feedbackStatusBanner.className = 'p-4 rounded-2xl border border-emerald-200 bg-emerald-50 text-emerald-900 flex items-start gap-3';
+                feedbackStatusIcon.className = 'fa-solid fa-circle-check text-emerald-600 text-xl mt-0.5';
+                feedbackStatusTitle.textContent = '¡Identificación acertada en familia!';
+            } else {
+                feedbackStatusBanner.className = 'p-4 rounded-2xl border border-amber-200 bg-amber-50 text-amber-900 flex items-start gap-3';
+                feedbackStatusIcon.className = 'fa-solid fa-lightbulb text-amber-600 text-xl mt-0.5';
+                feedbackStatusTitle.textContent = `Buena reflexión. Además, este caso se relaciona principalmente con: ${selectedCase.correctCategory}`;
+            }
+
+            feedbackViolenceType.textContent = `Clasificación: ${selectedCase.violenceType}`;
+            feedbackExplanation.textContent = selectedCase.explanation;
+            feedbackAlternative.textContent = selectedCase.alternative;
+            feedbackQuestion.textContent = `“${selectedCase.question}”`;
+
+            pedagogicalFeedback.classList.remove('hidden');
+            playSuccessChime();
+            pedagogicalFeedback.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        });
+
+        // ==========================================
+        // 8. GUARDAR EN TABLERO FAMILIAR
+        // ==========================================
+        saveToBoardBtn.addEventListener('click', () => {
+            if (!selectedCase) return;
+
+            const customNote = familyAgreementInput.value.trim() || selectedCase.alternative;
+            const alertLabels = {
+                amarillo: { text: 'Alerta Preventiva', badge: 'bg-amber-100 text-amber-800 border-amber-300', dot: 'bg-amber-400' },
+                naranja: { text: 'Riesgo Alto', badge: 'bg-orange-100 text-orange-800 border-orange-300', dot: 'bg-orange-500' },
+                rojo: { text: '¡Detener Ya!', badge: 'bg-rose-100 text-rose-800 border-rose-300', dot: 'bg-rose-600' }
+            };
+
+            const entry = {
+                uid: Date.now(),
+                domain: selectedCase.domain,
+                shortTitle: selectedCase.shortTitle,
+                violenceType: selectedCase.violenceType,
+                alertInfo: alertLabels[chosenAlertLevel] || alertLabels.naranja,
+                familyConclusion: customNote
+            };
+
+            analyzedBoard.push(entry);
+            renderAnalyzedBoard();
+            showToast('¡Caso y acuerdo guardados en el Tablero Familiar!', 'fa-circle-check text-emerald-400');
+        });
+
+        function renderAnalyzedBoard() {
+            analyzedCountBadge.textContent = analyzedBoard.length;
+
+            if (analyzedBoard.length === 0) {
+                boardEmptyState.classList.remove('hidden');
+                cardsList.classList.add('hidden');
+                return;
+            }
+
+            boardEmptyState.classList.add('hidden');
+            cardsList.classList.remove('hidden');
+            cardsList.innerHTML = '';
+
+            analyzedBoard.forEach((item, index) => {
+                const card = document.createElement('article');
+                card.className = 'bg-white rounded-2xl p-4 shadow-sm border border-morado25N-100 flex flex-col justify-between gap-3 relative';
+
+                card.innerHTML = `
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between gap-2">
+                            <span class="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-morado25N-100 text-morado25N-800">
+                                ${item.domain}
+                            </span>
+                            <span class="inline-flex items-center gap-1.5 text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${item.alertInfo.badge}">
+                                <span class="w-2 h-2 rounded-full ${item.alertInfo.dot}"></span>
+                                ${item.alertInfo.text}
+                            </span>
+                        </div>
+                        <h4 class="font-display text-sm font-extrabold text-slate-800">
+                            ${index + 1}. ${item.shortTitle} — <span class="text-morado25N-700 font-semibold">${item.violenceType}</span>
+                        </h4>
+                        <div class="bg-crema25N rounded-xl p-3 border border-slate-100">
+                            <p class="text-[11px] font-bold text-slate-500 uppercase mb-0.5">Reflexión / Acuerdo Familiar:</p>
+                            <p class="text-xs text-slate-700 leading-relaxed">“${item.familyConclusion}”</p>
+                        </div>
+                    </div>
+                    ${!isEvidenceMode ? `
+                    <div class="flex justify-end pt-1">
+                        <button type="button" onclick="removeBoardEntry(${item.uid})" class="text-[11px] text-slate-400 hover:text-rose-600 transition flex items-center gap-1">
+                            <i class="fa-solid fa-trash-can"></i> Quitar
+                        </button>
+                    </div>` : ''}
+                `;
+                cardsList.appendChild(card);
+            });
+        }
+
+        window.removeBoardEntry = function(uid) {
+            analyzedBoard = analyzedBoard.filter(item => item.uid !== uid);
+            renderAnalyzedBoard();
+            showToast('Registro eliminado del tablero', 'fa-trash-can text-rose-400');
+        };
+
+        // ==========================================
+        // 9. AGREGAR CASO PROPIO A LA RULETA
+        // ==========================================
+        openCustomModalBtn.addEventListener('click', () => customCaseModal.classList.remove('hidden'));
+        closeCustomModalBtn.addEventListener('click', () => customCaseModal.classList.add('hidden'));
+        cancelCustomBtn.addEventListener('click', () => customCaseModal.classList.add('hidden'));
+
+        customCaseForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const domain = document.getElementById('custom-domain').value;
+            const shortTitle = document.getElementById('custom-short-title').value.trim();
+            const description = document.getElementById('custom-description').value.trim();
+            const category = document.getElementById('custom-category').value;
+
+            const iconMap = {
+                'Hogar / Familia': 'fa-house',
+                'Escuela': 'fa-school',
+                'Espacios Digitales': 'fa-mobile-screen',
+                'Comunidad': 'fa-users'
+            };
+
+            const newCase = {
+                id: wheelCases.length + 1,
+                shortTitle: shortTitle,
+                domain: domain,
+                domainIcon: iconMap[domain] || 'fa-star',
+                color: wheelCases.length % 2 === 0 ? '#6B21A8' : '#F97316',
+                description: description,
+                correctCategory: category,
+                options: [
+                    "Control o Acoso",
+                    "Burlas o Descalificación",
+                    "Exclusión o Limitación de oportunidades",
+                    "Amenazas o Chantaje emocional"
+                ],
+                violenceType: `${category} (Caso aportado en familia)`,
+                explanation: "Identificar situaciones reales de nuestro propio entorno nos permite actuar a tiempo y proteger los derechos de mujeres, adolescentes y niñas.",
+                alternative: "Dialogar con respeto, poner límites claros y garantizar un trato digno e igualitario en este espacio.",
+                question: "¿Qué compromiso asumimos en familia para evitar que esta situación ocurra?"
+            };
+
+            wheelCases.push(newCase);
+            drawWheel(currentRotation);
+            customCaseForm.reset();
+            customCaseModal.classList.add('hidden');
+            showToast('¡Situación añadida a la ruleta! Gírala para analizarla.', 'fa-plus-circle text-emerald-400');
+        });
+
+        // ==========================================
+        // 10. MODO EVIDENCIA Y EXPORTACIÓN PNG
+        // ==========================================
+        function toggleEvidenceMode(active) {
+            if (active && analyzedBoard.length === 0) {
+                showToast('Analiza y guarda al menos 1 caso en el tablero antes de generar la evidencia.', 'fa-triangle-exclamation text-amber-400');
+                return;
+            }
+
+            isEvidenceMode = active;
+
+            if (active) {
+                const today = new Date();
+                sheetDateLabel.textContent = today.toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' });
+
+                interactiveWorkspace.classList.add('hidden');
+                generateEvidenceBtn.classList.add('hidden');
+                evidenceActionBar.classList.remove('hidden');
+                sheetOfficialHeader.classList.remove('hidden');
+                sheetOfficialFooter.classList.remove('hidden');
+                renderAnalyzedBoard();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } else {
+                interactiveWorkspace.classList.remove('hidden');
+                generateEvidenceBtn.classList.remove('hidden');
+                evidenceActionBar.classList.add('hidden');
+                sheetOfficialHeader.classList.add('hidden');
+                sheetOfficialFooter.classList.add('hidden');
+                renderAnalyzedBoard();
+                resizeWheelCanvas();
+            }
+        }
+
+        generateEvidenceBtn.addEventListener('click', () => toggleEvidenceMode(true));
+        closeEvidenceModeBtn.addEventListener('click', () => toggleEvidenceMode(false));
+
+        downloadEvidencePngBtn.addEventListener('click', async () => {
+            const target = document.getElementById('evidence-export-sheet');
+            const originalHTML = downloadEvidencePngBtn.innerHTML;
+
+            try {
+                downloadEvidencePngBtn.disabled = true;
+                downloadEvidencePngBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generando lámina...';
+
+                const canvas = await html2canvas(target, {
+                    scale: 2,
+                    backgroundColor: '#FFFFFF',
+                    useCORS: true
+                });
+
+                const link = document.createElement('a');
+                link.download = 'Evidencia_Actividad2_25N_SemaforoFamiliar.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+
+                showToast('¡Evidencia PNG descargada con éxito!', 'fa-circle-check text-emerald-400');
+            } catch (err) {
+                console.error(err);
+                showToast('No se pudo descargar automáticamente; puedes tomar captura de pantalla.', 'fa-circle-exclamation text-rose-400');
+            } finally {
+                downloadEvidencePngBtn.disabled = false;
+                downloadEvidencePngBtn.innerHTML = originalHTML;
+            }
+        });
+
+        // Inicialización al cargar
+        window.addEventListener('resize', resizeWheelCanvas);
+        window.addEventListener('load', () => {
+            resizeWheelCanvas();
+        });
+    </script>
+</body>
+</html>
